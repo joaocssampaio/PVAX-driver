@@ -36,7 +36,8 @@ DEFAULT_CONFIG = {
     "high_min_frequency": 1000,
     "high_max_frequency": 8000,
     "low_band_mode": "Média",
-    "high_band_mode": "Máximo"
+    "high_band_mode": "Máximo",
+    "frequency_enabled": 1
 }
 
 # ===== PROCESSAMENTO DE ÁUDIO =====
@@ -107,19 +108,32 @@ def audio_callback(indata, frames, time_info, status):
         samplerate = int(sd.query_devices(device_map[audio_device.get()])["default_samplerate"])
     except:
         return
+    
+    if frequency_enabled_var.get() == 0:
 
-    low_min = low_min_frequency_slider.get()
-    low_max = low_max_frequency_slider.get()
-    high_min = high_min_frequency_slider.get()
-    high_max = high_max_frequency_slider.get()
+        left_volume = np.sqrt(np.mean(left ** 2))
+        right_volume = np.sqrt(np.mean(right ** 2))
 
-    low_mode = low_band_mode_var.get()
-    high_mode = high_band_mode_var.get()
+        left_low_volume = left_volume
+        left_high_volume = left_volume
 
-    left_low_volume = calculate_frequency_band_volume(left, samplerate, low_min, low_max, low_mode)
-    left_high_volume = calculate_frequency_band_volume(left, samplerate, high_min, high_max, high_mode)
-    right_low_volume = calculate_frequency_band_volume(right, samplerate, low_min, low_max, low_mode)
-    right_high_volume = calculate_frequency_band_volume(right, samplerate, high_min, high_max, high_mode)
+        right_low_volume = right_volume
+        right_high_volume = right_volume
+    
+    else:
+
+        low_min = low_min_frequency_slider.get()
+        low_max = low_max_frequency_slider.get()
+        high_min = high_min_frequency_slider.get()
+        high_max = high_max_frequency_slider.get()
+
+        low_mode = low_band_mode_var.get()
+        high_mode = high_band_mode_var.get()
+
+        left_low_volume = calculate_frequency_band_volume(left, samplerate, low_min, low_max, low_mode)
+        left_high_volume = calculate_frequency_band_volume(left, samplerate, high_min, high_max, high_mode)
+        right_low_volume = calculate_frequency_band_volume(right, samplerate, low_min, low_max, low_mode)
+        right_high_volume = calculate_frequency_band_volume(right, samplerate, high_min, high_max, high_mode)
 
     alpha = smoothing_slider.get()
 
@@ -233,7 +247,8 @@ def save_config():
         "high_min_frequency": high_min_frequency_slider.get(),
         "high_max_frequency": high_max_frequency_slider.get(),
         "low_band_mode": low_band_mode_var.get(),
-        "high_band_mode": high_band_mode_var.get()
+        "high_band_mode": high_band_mode_var.get(),
+        "frequency_enabled": frequency_enabled_var.get()
     }
 
     with open(CONFIG_FILE, "w") as f:
@@ -265,6 +280,9 @@ def load_config():
 
         low_band_mode_var.set(config.get("low_band_mode", DEFAULT_CONFIG["low_band_mode"]))
         high_band_mode_var.set(config.get("high_band_mode", DEFAULT_CONFIG["high_band_mode"]))
+        frequency_enabled_var.set(
+            config.get("frequency_enabled", DEFAULT_CONFIG["frequency_enabled"])
+        )
 
         update_slider_labels()
         update_curve_graph()
@@ -290,6 +308,7 @@ def reset_defaults():
 
     low_band_mode_var.set(DEFAULT_CONFIG["low_band_mode"])
     high_band_mode_var.set(DEFAULT_CONFIG["high_band_mode"])
+    frequency_enabled_var.set(DEFAULT_CONFIG["frequency_enabled"])
 
     update_slider_labels()
     update_curve_graph()
@@ -632,6 +651,17 @@ curve_slider.pack(fill="x", padx=8, pady=(0, 8))
 # ===== FAIXAS DE FREQUÊNCIA =====
 frequency_frame = ttk.LabelFrame(scrollable_frame, text="Faixas de Frequência")
 frequency_frame.pack(fill="x", padx=18, pady=10)
+
+frequency_enabled_var = tk.IntVar(
+    value=DEFAULT_CONFIG["frequency_enabled"]
+)
+
+frequency_checkbox = ttk.Checkbutton(
+    frequency_frame,
+    text="Ativar Separação por Frequência",
+    variable=frequency_enabled_var
+)
+frequency_checkbox.pack(anchor="w", padx=8, pady=(4, 10))
 
 low_min_frequency_row = ttk.Frame(frequency_frame)
 low_min_frequency_row.pack(fill="x", padx=8)
