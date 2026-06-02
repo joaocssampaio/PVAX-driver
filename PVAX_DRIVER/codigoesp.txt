@@ -1,0 +1,40 @@
+const int leftLowPin = 25;
+const int leftHighPin = 26;
+const int rightLowPin = 27;
+const int rightHighPin = 14;
+
+const int pwmFreq = 5000;
+const int pwmResolution = 8; // 0–255
+
+void setup() {
+  Serial.begin(115200);
+
+  ledcAttach(leftLowPin, pwmFreq, pwmResolution);
+  ledcAttach(leftHighPin, pwmFreq, pwmResolution);
+  ledcAttach(rightLowPin, pwmFreq, pwmResolution);
+  ledcAttach(rightHighPin, pwmFreq, pwmResolution);
+
+  ledcWrite(leftLowPin, 0);
+  ledcWrite(leftHighPin, 0);
+  ledcWrite(rightLowPin, 0);
+  ledcWrite(rightHighPin, 0);
+}
+
+void loop() {
+  if (Serial.available()) {
+    int leftLow = Serial.parseInt();
+    int leftHigh = Serial.parseInt();
+    int rightLow = Serial.parseInt();
+    int rightHigh = Serial.parseInt();
+
+    leftLow = constrain(leftLow, 0, 255);
+    leftHigh = constrain(leftHigh, 0, 255);
+    rightLow = constrain(rightLow, 0, 255);
+    rightHigh = constrain(rightHigh, 0, 255);
+
+    ledcWrite(leftLowPin, leftLow);
+    ledcWrite(leftHighPin, leftHigh);
+    ledcWrite(rightLowPin, rightLow);
+    ledcWrite(rightHighPin, rightHigh);
+  }
+}
