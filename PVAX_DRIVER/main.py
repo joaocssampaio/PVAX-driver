@@ -11,6 +11,8 @@ import os
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+
+
 # ===== ESTADO GLOBAL =====
 running = False
 stream = None
@@ -108,7 +110,7 @@ def audio_callback(indata, frames, time_info, status):
         samplerate = int(sd.query_devices(device_map[audio_device.get()])["default_samplerate"])
     except:
         return
-    
+
     if frequency_enabled_var.get() == 0:
 
         left_volume = np.sqrt(np.mean(left ** 2))
@@ -119,7 +121,7 @@ def audio_callback(indata, frames, time_info, status):
 
         right_low_volume = right_volume
         right_high_volume = right_volume
-    
+
     else:
 
         low_min = low_min_frequency_slider.get()
@@ -296,6 +298,7 @@ def reset_defaults():
     intensity_slider.set(DEFAULT_CONFIG["intensity"])
     smoothing_slider.set(DEFAULT_CONFIG["smoothing"])
     min_vibration_slider.set(DEFAULT_CONFIG["min_vibration"])
+    min_vibration_slider.set(DEFAULT_CONFIG["min_vibration"])
     max_vibration_slider.set(DEFAULT_CONFIG["max_vibration"])
     noise_gate_slider.set(DEFAULT_CONFIG["noise_gate"])
     cap_slider.set(DEFAULT_CONFIG["cap"])
@@ -427,12 +430,20 @@ def update_curve_graph(*args):
 
         y_values.append(y)
 
-    ax.plot(x_values, y_values)
-    ax.set_title("Curva de Resposta: Áudio → Vibração")
+    fig.patch.set_facecolor(CT_BG_SECONDARY)
+    ax.set_facecolor(CT_BG_SECONDARY_DEEP)
+    for spine in ax.spines.values():
+        spine.set_edgecolor(CT_BORDER)
+    ax.tick_params(colors=CT_TEXT_MUTED, which="both")
+    ax.xaxis.label.set_color(CT_TEXT_MUTED)
+    ax.yaxis.label.set_color(CT_TEXT_MUTED)
+
+    ax.plot(x_values, y_values, color=CT_ACCENT, linewidth=2)
+    ax.set_title("Curva de Resposta: Áudio → Vibração", color=CT_TEXT_SEC)
     ax.set_xlabel("Volume do Som")
     ax.set_ylabel("Intensidade da Vibração")
     ax.set_ylim(0, 255)
-    ax.grid(True)
+    ax.grid(True, color=CT_BORDER, linestyle="-", alpha=0.5)
 
     fig.subplots_adjust(left=0.11, right=0.95, top=0.92, bottom=0.13)
     canvas_graph.draw()
@@ -450,17 +461,129 @@ root.title("PVAX Driver (v0.3)")
 root.geometry("760x760")
 root.minsize(620, 520)
 
+
+CT_BG           = "#171717" 
+CT_BG_SECONDARY        = "#080808"  
+CT_BG_SECONDARY_ALT    = "#0A0A0A"
+CT_BG_SECONDARY_RAISED = "#0f0f0f"
+CT_BG_SECONDARY_DEEP   = "#1a1a1a"
+CT_SPECULAR     = "#353540"  
+CT_BORDER       = "#1a1a1a"  
+CT_TEXT         = "#ffffff"  
+CT_TEXT_SEC     = "#c1c1c8"  
+CT_TEXT_MUTED   = "#A1A1A1"  
+CT_ACCENT       = "#2f19e7"  
+CT_ACCENT_HOVER = "#c1aaff"  
+CT_ACCENT_PRESS = "#3400ff"  
+
+root.configure(bg=CT_BG)
+
 style = ttk.Style()
 style.theme_use("clam")
-style.configure("TButton", padding=6)
-style.configure("TLabel", padding=4)
-style.configure("TLabelframe", padding=10)
+
+style.configure(".",
+    background=CT_BG_SECONDARY,
+    foreground=CT_TEXT,
+    fieldbackground=CT_BG_SECONDARY_DEEP,
+    troughcolor=CT_BG_SECONDARY_DEEP,
+    bordercolor=CT_BORDER,
+    darkcolor=CT_BG,         
+    lightcolor=CT_SPECULAR,   
+    selectbackground=CT_ACCENT,
+    selectforeground=CT_TEXT,
+    font=("Helvetica", 10)
+)
+style.configure("TFrame",
+    background=CT_BG_SECONDARY
+)
+style.configure("TLabel",
+    background=CT_BG_SECONDARY,
+    foreground=CT_TEXT,
+    padding=4
+)
+style.configure("TLabelframe",
+    background=CT_BG_SECONDARY,
+    foreground=CT_TEXT,
+    bordercolor=CT_BORDER,
+    darkcolor=CT_BG,
+    lightcolor=CT_SPECULAR,
+    relief="groove",
+    padding=10
+)
+style.configure("TLabelframe.Label",
+    background=CT_BG_SECONDARY,
+    foreground=CT_TEXT_MUTED,
+    font=("Helvetica", 9, "bold")
+)
+style.configure("TButton",
+    background=CT_ACCENT,
+    foreground=CT_TEXT,
+    bordercolor=CT_ACCENT,
+    darkcolor=CT_ACCENT_PRESS,
+    lightcolor=CT_ACCENT_HOVER,
+    relief="flat",
+    padding=(10, 6)
+)
+style.map("TButton",
+    background=[("active", CT_ACCENT_HOVER), ("pressed", CT_ACCENT_PRESS)],
+    foreground=[("active", CT_TEXT), ("pressed", CT_TEXT)],
+    bordercolor=[("active", CT_ACCENT_HOVER), ("pressed", CT_ACCENT_PRESS)]
+)
+style.configure("TScale",
+    background=CT_BG_SECONDARY,
+    troughcolor=CT_BG_SECONDARY_DEEP,
+    sliderlength=18,
+    sliderrelief="flat",
+    bordercolor=CT_BG_SECONDARY_DEEP
+)
+style.map("TScale",
+    background=[("active", CT_BG_SECONDARY)]
+)
+style.configure("TCombobox",
+    fieldbackground=CT_BG_SECONDARY_DEEP,
+    background=CT_BG_SECONDARY_RAISED,
+    foreground=CT_TEXT,
+    selectbackground=CT_ACCENT,
+    selectforeground=CT_TEXT,
+    bordercolor=CT_BORDER,
+    arrowcolor=CT_TEXT_MUTED,
+    arrowsize=14
+)
+style.map("TCombobox",
+    fieldbackground=[("readonly", CT_BG_SECONDARY_DEEP), ("focus", CT_BG_SECONDARY_DEEP)],
+    foreground=[("readonly", CT_TEXT)],
+    background=[("readonly", CT_BG_SECONDARY_RAISED), ("active", CT_BG_SECONDARY_ALT)],
+    bordercolor=[("focus", CT_ACCENT)]
+)
+style.configure("TCheckbutton",
+    background=CT_BG_SECONDARY,
+    foreground=CT_TEXT,
+    indicatorcolor=CT_BG_SECONDARY_DEEP,
+    indicatorrelief="flat"
+)
+style.map("TCheckbutton",
+    background=[("active", CT_BG_SECONDARY)],
+    foreground=[("active", CT_TEXT)],
+    indicatorcolor=[("selected", CT_ACCENT), ("active", CT_BG_SECONDARY_ALT)]
+)
+style.configure("Vertical.TScrollbar",
+    background=CT_BG_SECONDARY_ALT,
+    troughcolor=CT_BG_SECONDARY,
+    bordercolor=CT_BG_SECONDARY,
+    arrowcolor=CT_TEXT_MUTED,
+    darkcolor=CT_BG,
+    lightcolor=CT_SPECULAR,
+    relief="flat"
+)
+style.map("Vertical.TScrollbar",
+    background=[("active", CT_SPECULAR), ("disabled", CT_BG_SECONDARY)]
+)
 
 # ===== LAYOUT COM ROLAGEM =====
 main_frame = ttk.Frame(root)
 main_frame.pack(fill="both", expand=True)
 
-canvas_scroll = tk.Canvas(main_frame, highlightthickness=0)
+canvas_scroll = tk.Canvas(main_frame, highlightthickness=0, bg=CT_BG)
 scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas_scroll.yview)
 scrollable_frame = ttk.Frame(canvas_scroll)
 
@@ -490,13 +613,19 @@ canvas_scroll.bind_all("<MouseWheel>", on_mousewheel)
 header = ttk.Frame(scrollable_frame)
 header.pack(fill="x", padx=18, pady=(18, 8))
 
-title_label = ttk.Label(header, text="PVAX - Pulseira Vibratória Auxiliadora da Experiência", font=("Segoe UI", 18, "bold"))
+title_label = ttk.Label(
+    header,
+    text="PVAX - Pulseira Vibratória Auxiliadora da Experiência",
+    font=("Helvetica", 18, "bold"),
+    foreground=CT_TEXT
+)
 title_label.pack(anchor="w")
 
 subtitle_label = ttk.Label(
     header,
     text="Mapeamento em tempo real de áudio estéreo e frequência para feedback por vibração",
-    font=("Segoe UI", 10)
+    font=("Helvetica", 10),
+    foreground=CT_TEXT_MUTED
 )
 subtitle_label.pack(anchor="w")
 
@@ -553,29 +682,30 @@ live_frame.pack(fill="x", padx=18, pady=10)
 live_values_label = ttk.Label(
     live_frame,
     text="E-Grave:   0    E-Agudo:   0    D-Grave:   0    D-Agudo:   0",
-    font=("Consolas", 10)
+    font=("Courier", 10),
+    foreground=CT_TEXT_SEC
 )
 live_values_label.pack(anchor="w", padx=8, pady=6)
 
-motor_canvas = tk.Canvas(live_frame, height=260, bg="#f0f0f0", highlightthickness=0)
+motor_canvas = tk.Canvas(live_frame, height=260, bg=CT_BG, highlightthickness=0)
 motor_canvas.pack(fill="x", padx=8, pady=8)
 
 BAR_BOTTOM = 200
 BAR_MAX_HEIGHT = 140
 BAR_WIDTH = 38
 
-left_low_bar = motor_canvas.create_rectangle(90, BAR_BOTTOM, 90 + BAR_WIDTH, BAR_BOTTOM, fill="#444444")
-left_high_bar = motor_canvas.create_rectangle(150, BAR_BOTTOM, 150 + BAR_WIDTH, BAR_BOTTOM, fill="#444444")
-right_low_bar = motor_canvas.create_rectangle(390, BAR_BOTTOM, 390 + BAR_WIDTH, BAR_BOTTOM, fill="#444444")
-right_high_bar = motor_canvas.create_rectangle(450, BAR_BOTTOM, 450 + BAR_WIDTH, BAR_BOTTOM, fill="#444444")
+left_low_bar  = motor_canvas.create_rectangle(90,  BAR_BOTTOM, 90  + BAR_WIDTH, BAR_BOTTOM, fill=CT_ACCENT, outline="")
+left_high_bar = motor_canvas.create_rectangle(150, BAR_BOTTOM, 150 + BAR_WIDTH, BAR_BOTTOM, fill=CT_ACCENT, outline="")
+right_low_bar  = motor_canvas.create_rectangle(390, BAR_BOTTOM, 390 + BAR_WIDTH, BAR_BOTTOM, fill=CT_ACCENT, outline="")
+right_high_bar = motor_canvas.create_rectangle(450, BAR_BOTTOM, 450 + BAR_WIDTH, BAR_BOTTOM, fill=CT_ACCENT, outline="")
 
-motor_canvas.create_text(140, 25, text="Pulseira Esquerda", font=("Segoe UI", 11, "bold"))
-motor_canvas.create_text(440, 25, text="Pulseira Direita", font=("Segoe UI", 11, "bold"))
+motor_canvas.create_text(140, 25, text="Pulseira Esquerda", font=("Helvetica", 11, "bold"), fill=CT_TEXT)
+motor_canvas.create_text(440, 25, text="Pulseira Direita",  font=("Helvetica", 11, "bold"), fill=CT_TEXT)
 
-motor_canvas.create_text(109, 225, text="Grave")
-motor_canvas.create_text(169, 225, text="Agudo")
-motor_canvas.create_text(409, 225, text="Grave")
-motor_canvas.create_text(469, 225, text="Agudo")
+motor_canvas.create_text(109, 225, text="Grave", fill=CT_TEXT_MUTED)
+motor_canvas.create_text(169, 225, text="Agudo", fill=CT_TEXT_MUTED)
+motor_canvas.create_text(409, 225, text="Grave", fill=CT_TEXT_MUTED)
+motor_canvas.create_text(469, 225, text="Agudo", fill=CT_TEXT_MUTED)
 
 # ===== AJUSTES BÁSICOS =====
 basic_frame = ttk.LabelFrame(scrollable_frame, text="Ajustes Básicos")
@@ -584,7 +714,7 @@ basic_frame.pack(fill="x", padx=18, pady=10)
 intensity_row = ttk.Frame(basic_frame)
 intensity_row.pack(fill="x", padx=8)
 ttk.Label(intensity_row, text="Intensidade").pack(side="left")
-intensity_value_label = ttk.Label(intensity_row, text="1000")
+intensity_value_label = ttk.Label(intensity_row, text="1000", foreground=CT_TEXT_MUTED)
 intensity_value_label.pack(side="right")
 intensity_slider = ttk.Scale(basic_frame, from_=100, to=2000, orient="horizontal")
 intensity_slider.set(DEFAULT_CONFIG["intensity"])
@@ -593,7 +723,7 @@ intensity_slider.pack(fill="x", padx=8, pady=(0, 8))
 smoothing_row = ttk.Frame(basic_frame)
 smoothing_row.pack(fill="x", padx=8)
 ttk.Label(smoothing_row, text="Suavização").pack(side="left")
-smoothing_value_label = ttk.Label(smoothing_row, text="0.45")
+smoothing_value_label = ttk.Label(smoothing_row, text="0.45", foreground=CT_TEXT_MUTED)
 smoothing_value_label.pack(side="right")
 smoothing_slider = ttk.Scale(basic_frame, from_=0.0, to=1.0, orient="horizontal")
 smoothing_slider.set(DEFAULT_CONFIG["smoothing"])
@@ -606,7 +736,7 @@ advanced_frame.pack(fill="x", padx=18, pady=10)
 min_vibration_row = ttk.Frame(advanced_frame)
 min_vibration_row.pack(fill="x", padx=8)
 ttk.Label(min_vibration_row, text="Vibração Mínima").pack(side="left")
-min_vibration_value_label = ttk.Label(min_vibration_row, text="30")
+min_vibration_value_label = ttk.Label(min_vibration_row, text="30", foreground=CT_TEXT_MUTED)
 min_vibration_value_label.pack(side="right")
 min_vibration_slider = ttk.Scale(advanced_frame, from_=0, to=255, orient="horizontal")
 min_vibration_slider.set(DEFAULT_CONFIG["min_vibration"])
@@ -615,7 +745,7 @@ min_vibration_slider.pack(fill="x", padx=8, pady=(0, 8))
 max_vibration_row = ttk.Frame(advanced_frame)
 max_vibration_row.pack(fill="x", padx=8)
 ttk.Label(max_vibration_row, text="Vibração Máxima").pack(side="left")
-max_vibration_value_label = ttk.Label(max_vibration_row, text="255")
+max_vibration_value_label = ttk.Label(max_vibration_row, text="255", foreground=CT_TEXT_MUTED)
 max_vibration_value_label.pack(side="right")
 max_vibration_slider = ttk.Scale(advanced_frame, from_=0, to=255, orient="horizontal")
 max_vibration_slider.set(DEFAULT_CONFIG["max_vibration"])
@@ -624,7 +754,7 @@ max_vibration_slider.pack(fill="x", padx=8, pady=(0, 8))
 noise_gate_row = ttk.Frame(advanced_frame)
 noise_gate_row.pack(fill="x", padx=8)
 ttk.Label(noise_gate_row, text="Cancelamento de Ruído").pack(side="left")
-noise_gate_value_label = ttk.Label(noise_gate_row, text="5%")
+noise_gate_value_label = ttk.Label(noise_gate_row, text="5%", foreground=CT_TEXT_MUTED)
 noise_gate_value_label.pack(side="right")
 noise_gate_slider = ttk.Scale(advanced_frame, from_=0, to=80, orient="horizontal")
 noise_gate_slider.set(DEFAULT_CONFIG["noise_gate"])
@@ -633,7 +763,7 @@ noise_gate_slider.pack(fill="x", padx=8, pady=(0, 8))
 cap_row = ttk.Frame(advanced_frame)
 cap_row.pack(fill="x", padx=8)
 ttk.Label(cap_row, text="Limite Máximo").pack(side="left")
-cap_value_label = ttk.Label(cap_row, text="100%")
+cap_value_label = ttk.Label(cap_row, text="100%", foreground=CT_TEXT_MUTED)
 cap_value_label.pack(side="right")
 cap_slider = ttk.Scale(advanced_frame, from_=10, to=100, orient="horizontal")
 cap_slider.set(DEFAULT_CONFIG["cap"])
@@ -642,7 +772,7 @@ cap_slider.pack(fill="x", padx=8, pady=(0, 8))
 curve_row = ttk.Frame(advanced_frame)
 curve_row.pack(fill="x", padx=8)
 ttk.Label(curve_row, text="Curva de Resposta").pack(side="left")
-curve_value_label = ttk.Label(curve_row, text="0.70")
+curve_value_label = ttk.Label(curve_row, text="0.70", foreground=CT_TEXT_MUTED)
 curve_value_label.pack(side="right")
 curve_slider = ttk.Scale(advanced_frame, from_=0.3, to=3.0, orient="horizontal")
 curve_slider.set(DEFAULT_CONFIG["curve"])
@@ -652,9 +782,7 @@ curve_slider.pack(fill="x", padx=8, pady=(0, 8))
 frequency_frame = ttk.LabelFrame(scrollable_frame, text="Faixas de Frequência")
 frequency_frame.pack(fill="x", padx=18, pady=10)
 
-frequency_enabled_var = tk.IntVar(
-    value=DEFAULT_CONFIG["frequency_enabled"]
-)
+frequency_enabled_var = tk.IntVar(value=DEFAULT_CONFIG["frequency_enabled"])
 
 frequency_checkbox = ttk.Checkbutton(
     frequency_frame,
@@ -666,7 +794,7 @@ frequency_checkbox.pack(anchor="w", padx=8, pady=(4, 10))
 low_min_frequency_row = ttk.Frame(frequency_frame)
 low_min_frequency_row.pack(fill="x", padx=8)
 ttk.Label(low_min_frequency_row, text="Graves - Frequência Mínima").pack(side="left")
-low_min_frequency_value_label = ttk.Label(low_min_frequency_row, text="20 Hz")
+low_min_frequency_value_label = ttk.Label(low_min_frequency_row, text="20 Hz", foreground=CT_TEXT_MUTED)
 low_min_frequency_value_label.pack(side="right")
 low_min_frequency_slider = ttk.Scale(frequency_frame, from_=20, to=8000, orient="horizontal")
 low_min_frequency_slider.set(DEFAULT_CONFIG["low_min_frequency"])
@@ -675,7 +803,7 @@ low_min_frequency_slider.pack(fill="x", padx=8, pady=(0, 8))
 low_max_frequency_row = ttk.Frame(frequency_frame)
 low_max_frequency_row.pack(fill="x", padx=8)
 ttk.Label(low_max_frequency_row, text="Graves - Frequência Máxima").pack(side="left")
-low_max_frequency_value_label = ttk.Label(low_max_frequency_row, text="300 Hz")
+low_max_frequency_value_label = ttk.Label(low_max_frequency_row, text="300 Hz", foreground=CT_TEXT_MUTED)
 low_max_frequency_value_label.pack(side="right")
 low_max_frequency_slider = ttk.Scale(frequency_frame, from_=20, to=8000, orient="horizontal")
 low_max_frequency_slider.set(DEFAULT_CONFIG["low_max_frequency"])
@@ -684,7 +812,7 @@ low_max_frequency_slider.pack(fill="x", padx=8, pady=(0, 8))
 high_min_frequency_row = ttk.Frame(frequency_frame)
 high_min_frequency_row.pack(fill="x", padx=8)
 ttk.Label(high_min_frequency_row, text="Agudos - Frequência Mínima").pack(side="left")
-high_min_frequency_value_label = ttk.Label(high_min_frequency_row, text="1000 Hz")
+high_min_frequency_value_label = ttk.Label(high_min_frequency_row, text="1000 Hz", foreground=CT_TEXT_MUTED)
 high_min_frequency_value_label.pack(side="right")
 high_min_frequency_slider = ttk.Scale(frequency_frame, from_=20, to=8000, orient="horizontal")
 high_min_frequency_slider.set(DEFAULT_CONFIG["high_min_frequency"])
@@ -693,7 +821,7 @@ high_min_frequency_slider.pack(fill="x", padx=8, pady=(0, 8))
 high_max_frequency_row = ttk.Frame(frequency_frame)
 high_max_frequency_row.pack(fill="x", padx=8)
 ttk.Label(high_max_frequency_row, text="Agudos - Frequência Máxima").pack(side="left")
-high_max_frequency_value_label = ttk.Label(high_max_frequency_row, text="8000 Hz")
+high_max_frequency_value_label = ttk.Label(high_max_frequency_row, text="8000 Hz", foreground=CT_TEXT_MUTED)
 high_max_frequency_value_label.pack(side="right")
 high_max_frequency_slider = ttk.Scale(frequency_frame, from_=20, to=8000, orient="horizontal")
 high_max_frequency_slider.set(DEFAULT_CONFIG["high_max_frequency"])
@@ -746,10 +874,11 @@ ttk.Button(config_frame, text="Restaurar Padrões", command=reset_defaults).pack
 graph_frame = ttk.LabelFrame(scrollable_frame, text="Curva de Resposta")
 graph_frame.pack(fill="both", expand=True, padx=18, pady=10)
 
-fig = Figure(figsize=(6.4, 4.2), dpi=100)
+fig = Figure(figsize=(6.4, 4.2), dpi=100, facecolor=CT_BG_SECONDARY)
 ax = fig.add_subplot(111)
 
 canvas_graph = FigureCanvasTkAgg(fig, master=graph_frame)
+canvas_graph.get_tk_widget().configure(bg=CT_BG_SECONDARY, highlightthickness=0)
 canvas_graph.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=8)
 
 for slider in [
@@ -771,7 +900,12 @@ for slider in [
 status_frame = ttk.Frame(scrollable_frame)
 status_frame.pack(fill="x", padx=18, pady=(6, 18))
 
-status_label = ttk.Label(status_frame, text="Não conectado", font=("Segoe UI", 9))
+status_label = ttk.Label(
+    status_frame,
+    text="Não conectado",
+    font=("Helvetica", 9),
+    foreground=CT_TEXT_MUTED
+)
 status_label.pack(anchor="w")
 
 load_config()
