@@ -246,10 +246,3 @@ Contribuições são bem-vindas! Por favor, abra um **Pull Request** com suas me
 
 ---
 
-<div align="center">
-
-**Desenvolvido com ❤️ por [Miguel Drechsler](https://github.com/miguel-drechsler)**
-
-⭐ Se gostou, não esqueça de dar uma estrela!
-
-</div>
