@@ -1,40 +1,52 @@
-const int leftLowPin = 25;
-const int leftHighPin = 26;
-const int rightLowPin = 27;
+const int leftLowPin   = 25;
+const int leftHighPin  = 26;
+const int rightLowPin  = 27;
 const int rightHighPin = 14;
 
-const int pwmFreq = 5000;
+const int pwmFreq       = 5000;
 const int pwmResolution = 8; // 0–255
+
+// If no packet arrives within this window, zero all motors.
+// Prevents motors from staying on if the host crashes or disconnects.
+const unsigned long WATCHDOG_MS = 300;
+unsigned long lastReceived = 0;
 
 void setup() {
   Serial.begin(115200);
+  Serial.setTimeout(50); // short timeout so readStringUntil never stalls long
 
-  ledcAttach(leftLowPin, pwmFreq, pwmResolution);
-  ledcAttach(leftHighPin, pwmFreq, pwmResolution);
-  ledcAttach(rightLowPin, pwmFreq, pwmResolution);
+  ledcAttach(leftLowPin,   pwmFreq, pwmResolution);
+  ledcAttach(leftHighPin,  pwmFreq, pwmResolution);
+  ledcAttach(rightLowPin,  pwmFreq, pwmResolution);
   ledcAttach(rightHighPin, pwmFreq, pwmResolution);
 
-  ledcWrite(leftLowPin, 0);
-  ledcWrite(leftHighPin, 0);
-  ledcWrite(rightLowPin, 0);
+  ledcWrite(leftLowPin,   0);
+  ledcWrite(leftHighPin,  0);
+  ledcWrite(rightLowPin,  0);
   ledcWrite(rightHighPin, 0);
+
+  lastReceived = millis();
 }
 
 void loop() {
   if (Serial.available()) {
-    int leftLow = Serial.parseInt();
-    int leftHigh = Serial.parseInt();
-    int rightLow = Serial.parseInt();
-    int rightHigh = Serial.parseInt();
+    String line = Serial.readStringUntil('\n');
+    int ll, lh, rl, rh;
+    // sscanf returns the number of items successfully parsed
+    if (sscanf(line.c_str(), "%d,%d,%d,%d", &ll, &lh, &rl, &rh) == 4) {
+      ledcWrite(leftLowPin,   constrain(ll, 0, 255));
+      ledcWrite(leftHighPin,  constrain(lh, 0, 255));
+      ledcWrite(rightLowPin,  constrain(rl, 0, 255));
+      ledcWrite(rightHighPin, constrain(rh, 0, 255));
+      lastReceived = millis();
+    }
+  }
 
-    leftLow = constrain(leftLow, 0, 255);
-    leftHigh = constrain(leftHigh, 0, 255);
-    rightLow = constrain(rightLow, 0, 255);
-    rightHigh = constrain(rightHigh, 0, 255);
-
-    ledcWrite(leftLowPin, leftLow);
-    ledcWrite(leftHighPin, leftHigh);
-    ledcWrite(rightLowPin, rightLow);
-    ledcWrite(rightHighPin, rightHigh);
+  // Watchdog: zero motors if the host goes silent
+  if (millis() - lastReceived > WATCHDOG_MS) {
+    ledcWrite(leftLowPin,   0);
+    ledcWrite(leftHighPin,  0);
+    ledcWrite(rightLowPin,  0);
+    ledcWrite(rightHighPin, 0);
   }
 }
