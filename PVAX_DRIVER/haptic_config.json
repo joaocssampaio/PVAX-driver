@@ -1,0 +1,16 @@
+{
+    "intensity": 1000.0,
+    "smoothing": 0.45,
+    "min_vibration": 30,
+    "max_vibration": 255,
+    "noise_gate": 5.0,
+    "cap": 100.0,
+    "curve": 0.7,
+    "low_min_frequency": 20.0,
+    "low_max_frequency": 300.0,
+    "high_min_frequency": 1000.0,
+    "high_max_frequency": 8000.0,
+    "low_band_mode": "M\u00e9dia",
+    "high_band_mode": "M\u00e9dia",
+    "frequency_enabled": 0
+}
